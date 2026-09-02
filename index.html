@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SKF SBC 공정재고 · 확정출하 · 발주 통합현황</title>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#1c2530;--sub:#6b7684;--line:#dfe4ea;
+--navy:#1f3864;--navy2:#2e5e9e;--g1:#eef2f9;--g2:#eef6ee;--g3:#fff8e6;--g4:#fdefe6;
+--bad:#b3261e;--badbg:#fdecea;--good:#1b6b3a;--goodbg:#e7f4ec;--edit:#fff4d6;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+font-family:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo",system-ui,sans-serif;font-size:13px}
+.wrap{max-width:1900px;margin:0 auto;padding:20px 18px 60px}
+h1{font-size:21px;margin:0 0 4px;color:var(--navy);letter-spacing:-.3px}
+.meta{color:var(--sub);font-size:12px;margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.kpi .l{font-size:11px;color:var(--sub);margin-bottom:5px}
+.kpi .v{font-size:20px;font-weight:700;letter-spacing:-.5px}
+.kpi .u{font-size:11px;color:var(--sub);font-weight:400;margin-left:3px}
+.kpi.warn .v{color:var(--bad)}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.tab{padding:7px 15px;border:1px solid var(--line);background:var(--card);border-radius:6px;
+cursor:pointer;font-size:12.5px;color:var(--sub)}
+.tab.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:700}
+.sp{flex:1}
+button.b{padding:6px 12px;border:1px solid var(--line);background:#fff;border-radius:6px;
+cursor:pointer;font-size:12px;color:var(--navy)}
+button.b:hover{background:#eef2f9}
+button.b.warn{color:var(--bad)}
+button.b.pri{background:var(--navy2);border-color:var(--navy2);color:#fff;font-weight:700}
+#stat{font-size:11.5px;color:var(--sub);margin-left:4px}
+.monbar{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);
+border-radius:8px;padding:9px 13px;margin-bottom:12px;flex-wrap:wrap}
+.monbar b{color:var(--navy)}
+select#mon{padding:5px 9px;border:1px solid var(--line);border-radius:6px;font:inherit;
+font-weight:700;color:var(--navy);background:#fff}
+.panel{display:none}.panel.on{display:block}
+.chabar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.chip{display:inline-flex;align-items:center;gap:3px;background:var(--g4);border:1px solid #f0cdb4;
+border-radius:6px;padding:3px 4px 3px 7px}
+.chip input{border:0;background:transparent;font:inherit;font-size:12px;text-align:center;padding:2px}
+.chip input.cn{width:44px;font-weight:700}
+.chip input.cd{width:52px;color:var(--sub)}
+.chip input:focus{outline:0;background:#fff;box-shadow:inset 0 0 0 1px var(--navy2);border-radius:3px}
+.chip button{border:0;background:transparent;color:var(--bad);cursor:pointer;font-size:14px;
+line-height:1;padding:0 4px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:74vh}
+table{border-collapse:collapse;width:100%;white-space:nowrap}
+th,td{border:1px solid var(--line);padding:5px 7px;text-align:center}
+thead th{background:var(--navy2);color:#fff;font-size:11.5px;font-weight:700;position:sticky;top:0;z-index:2}
+thead tr:first-child th{background:var(--navy);z-index:3}
+td.name{font-weight:700}td.l{text-align:left}
+tbody tr:hover td{background:#eaf0fa!important}
+.n{font-variant-numeric:tabular-nums}
+.z{color:#c3c9d2}
+.c1{background:var(--g1)}.c2{background:var(--g2)}.c3{background:var(--g3)}.c4{background:var(--g4)}
+.neg{background:var(--badbg);color:var(--bad);font-weight:700}
+.pos{background:var(--goodbg);color:var(--good)}
+tfoot td{background:#d6dce4;font-weight:700;position:sticky;bottom:0;z-index:2}
+.note{color:var(--sub);font-size:11px;text-align:left;white-space:normal;min-width:150px}
+.legend{margin-top:10px;color:var(--sub);font-size:11.5px;line-height:1.7}
+.bar{height:7px;background:#e7ebf0;border-radius:4px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--navy2)}
+.bar i.low{background:var(--bad)}
+input.ed{width:100%;min-width:62px;border:0;background:transparent;text-align:center;
+font:inherit;font-variant-numeric:tabular-nums;color:inherit;padding:2px 0;border-radius:3px}
+input.ed:hover{background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+input.ed:focus{outline:0;background:#fff;box-shadow:inset 0 0 0 2px var(--navy2)}
+td.dirty{background:var(--edit)!important;box-shadow:inset 3px 0 0 #e0a800}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:12px;margin-top:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.card h3{margin:0 0 10px;font-size:13px;color:var(--navy);font-weight:700}
+.card h3 small{color:var(--sub);font-weight:400;margin-left:6px;font-size:11px}
+.hl{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--navy2);
+border-radius:8px;padding:13px 16px;margin-top:12px;font-size:13.5px;line-height:1.8}
+.hl b{color:var(--bad)}
+.rk{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px}
+.rk .nm{width:70px;font-weight:700}
+.rk .tr{flex:1;height:16px;background:#eef1f5;border-radius:3px;overflow:hidden}
+.rk .tr i{display:block;height:100%;background:var(--navy2)}
+.rk .tr i.r{background:var(--bad)}
+.rk .vv{width:92px;text-align:right;font-variant-numeric:tabular-nums}
+svg text{font-family:inherit}
+@media print{.tabs,.chabar,.monbar{display:none}.panel{display:block!important}body{background:#fff}
+.box{border:0;max-height:none}thead th,tfoot td{position:static}
+#t1 td,#t1 th{position:static!important}input.ed{box-shadow:none!important}}
+#t1 td:nth-child(-n+3),#t1 tfoot td:first-child,#t1 thead tr:first-child th:nth-child(-n+3){
+position:sticky;z-index:1;background:#fff}
+#t1 thead tr:first-child th:nth-child(-n+3){z-index:4;background:var(--navy)}
+#t1 tfoot td:first-child{background:#d6dce4;z-index:3}
+#t1 td:nth-child(1),#t1 thead th:nth-child(1),#t1 tfoot td:first-child{left:0;min-width:36px}
+#t1 td:nth-child(2),#t1 thead tr:first-child th:nth-child(2){left:36px;min-width:80px}
+#t1 td:nth-child(3),#t1 thead tr:first-child th:nth-child(3){left:116px;min-width:98px}
+</style></head><body><div class="wrap">
+<h1>SKF SBC RACEWAY &nbsp;공정재고 · 확정출하 · 발주 통합현황</h1>
+<div class="meta" id="meta"></div>
+<div class="monbar">
+ <b>출하 월</b>
+ <select id="mon"></select>
+ <button class="b pri" onclick="addMonth()">+ 새 월 등록</button>
+ <button class="b" onclick="copyMonth()">현재 월 복사</button>
+ <button class="b warn" onclick="delMonth()">월 삭제</button>
+ <span class="sp"></span>
+ <span id="sync"></span>
+ <button class="b" onclick="pullNow()">서버 새로고침</button>
+ <span id="stat"></span>
+ <button class="b" onclick="saveFile()">저장 (JSON)</button>
+ <button class="b" onclick="document.getElementById('fi').click()">불러오기</button>
+ <button class="b" onclick="csv()">CSV</button>
+ <button class="b warn" onclick="reset()">원본 복원</button>
+ <input type="file" id="fi" accept=".json" style="display:none">
+</div>
+<div class="tabs">
+ <div class="tab on" data-p="p0">대시보드</div>
+ <div class="tab" data-p="p1">통합현황 (편집 가능)</div>
+ <div class="tab" data-p="p2">차수별 소요 시뮬레이션</div>
+ <div class="tab" data-p="p3">품목 특이사항</div>
+</div>
+<div class="panel on" id="p0">
+ <div class="kpis" id="kpis"></div>
+ <div class="hl" id="hl"></div>
+ <div class="grid">
+  <div class="card"><h3>공정 단계별 재고 분포 <small>IN + OUT, EA</small></h3><div id="c1"></div></div>
+  <div class="card"><h3 id="h2t">차수별 확정출하 vs 누적</h3><div id="c2"></div></div>
+  <div class="card"><h3>품목별 과부족 <small>검사대기 포함 기준, SET</small></h3><div id="c3"></div></div>
+  <div class="card"><h3>출하 준비율 <small>출하가능 SET ÷ 확정출하</small></h3><div id="c4"></div></div>
+ </div></div>
+<div class="panel" id="p1">
+ <div class="chabar" id="chabar"></div>
+ <div class="box" id="bx1"><table id="t1"></table></div>
+ <div class="legend">※ 흰 배경 셀은 <b>직접 수정</b> 가능합니다 (공정재고 IN/OUT · 차수별 확정출하 · 소재 발주량).
+  값 입력 후 Enter 시 재고합계 · 출하가능 SET · 과부족 · 대시보드가 자동 재계산됩니다.<br>
+  ※ 차수 이름과 납기일은 위 주황색 칩에서 바로 수정, <b>+ 차수 추가</b> / <b>×</b>로 증감할 수 있습니다.
+  월이 바뀌면 <b>+ 새 월 등록</b>으로 새 출하월을 만들고 수량만 입력하세요. 공정재고는 모든 월이 공유합니다.<br>
+  ※ 출하는 SET 단위 → <b>출하가능 SET = MIN(INNER 재고, OUTER 재고)</b>. 과부족 = 출하가능 SET − 확정출하 합계.</div></div>
+<div class="panel" id="p2"><div class="box"><table id="t2"></table></div>
+ <div class="legend">※ 잔량 = 출하가능 SET(검사대기 포함) − 해당 차수까지 누적 확정출하.</div></div>
+<div class="panel" id="p3"><div class="box"><table id="t3"></table></div></div>
+</div>
+<script>
+const ORIG={"base": "2026-09-02", "active": "2026-09", "months": [{"k": "2026-09", "cha": [{"n": "1차", "d": "09/19"}, {"n": "2차", "d": "09/26"}, {"n": "3차", "d": "09/30"}, {"n": "4차", "d": "10/10"}, {"n": "5차", "d": "10/17"}, {"n": "6차", "d": "08/25"}, {"n": "7차", "d": "08/31"}]}], "rows": [{"name": "1106CB", "code": "BDA-1106C", "note": "", "po": 0.0, "ship": {"2026-09": [0.0, 60000.0, 0.0, 20000.0, 32000.0, 0.0, 0.0]}, "PRESS": [0.0, 0.0], "열처리": [49500.0, 49500.0], "표면처리": [0.0, 0.0], "검사대기": [1485.0, 593.0], "표면O": [36000.0, 12000.0], "표면X": [0.0, 40.0]}, {"name": "1106CA", "code": "BDA-1106C", "note": "", "po": 0.0, "ship": {"2026-09": [116000.0, 60000.0, 80000.0, 88000.0, 44000.0, 0.0, 0.0]}, "PRESS": [33000.0, 33000.0], "열처리": [82500.0, 82500.0], "표면처리": [0.0, 0.0], "검사대기": [3768.0, 3909.0], "표면O": [0.0, 0.0], "표면X": [36000.0, 0.0]}, {"name": "1113AA", "code": "BDA-1113A", "note": "1113D와 별도 제품", "po": 0.0, "ship": {"2026-09": [21000.0, 21000.0, 15000.0, 21000.0, 30000.0, 0.0, 0.0]}, "PRESS": [0.0, 0.0], "열처리": [0.0, 0.0], "표면처리": [0.0, 0.0], "검사대기": [14794.0, 27822.0], "표면O": [75000.0, 21000.0], "표면X": [33000.0, 3000.0]}, {"name": "1113E", "code": "BDA-1113E", "note": "", "po": 0.0, "ship": {"2026-09": [0.0, 51000.0, 42000.0, 72000.0, 30000.0, 0.0, 0.0]}, "PRESS": [0.0, 0.0], "열처리": [13200.0, 0.0], "표면처리": [0.0, 0.0], "검사대기": [49574.0, 24320.0], "표면O": [75000.0, 45000.0], "표면X": [57000.0, 45000.0]}, {"name": "1124BA", "code": "BDA-1124B", "note": "", "po": 0.0, "ship": {"2026-09": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "PRESS": [0.0, 0.0], "열처리": [0.0, 0.0], "표면처리": [0.0, 33000.0], "검사대기": [2786.0, 3429.0], "표면O": [0.0, 0.0], "표면X": [12000.0, 8000.0]}, {"name": "1165A", "code": "BDA-1165A", "note": "표면처리 공정 없음", "po": 0.0, "ship": {"2026-09": [0.0, 21000.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "PRESS": [0.0, 0.0], "열처리": [0.0, 0.0], "표면처리": [0, 0], "검사대기": [2788.0, 100.0], "표면O": [0, 0], "표면X": [33000.0, 39000.0]}, {"name": "1179", "code": "BDA-1179", "note": "", "po": 0.0, "ship": {"2026-09": [81000.0, 132000.0, 153000.0, 141000.0, 60000.0, 0.0, 0.0]}, "PRESS": [39600.0, 39600.0], "열처리": [26400.0, 66000.0], "표면처리": [118800.0, 26400.0], "검사대기": [1991.0, 53333.0], "표면O": [138000.0, 81000.0], "표면X": [0.0, 0.0]}, {"name": "1179C", "code": "BDA-1179C", "note": "표면처리 공정 없음", "po": 0.0, "ship": {"2026-09": [0.0, 0.0, 0.0, 0.0, 6000.0, 0.0, 0.0]}, "PRESS": [0.0, 0.0], "열처리": [0.0, 0.0], "표면처리": [0, 0], "검사대기": [0.0, 0.0], "표면O": [0, 0], "표면X": [0.0, 0.0]}, {"name": "1159B", "code": "BDA-1159B", "note": "표면처리 공정 없음", "po": 0.0, "ship": {"2026-09": [0.0, 21000.0, 60000.0, 45000.0, 0.0, 0.0, 0.0]}, "PRESS": [0.0, 0.0], "열처리": [13200.0, 0.0], "표면처리": [0, 0], "검사대기": [35082.0, 24237.0], "표면O": [0, 0], "표면X": [72000.0, 99000.0]}, {"name": "1159C", "code": "BDA-1159C", "note": "", "po": 0.0, "ship": {"2026-09": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "PRESS": [0.0, 0.0], "열처리": [0.0, 0.0], "표면처리": [0.0, 0.0], "검사대기": [847.0, 1310.0], "표면O": [21000.0, 30000.0], "표면X": [0.0, 0.0]}, {"name": "1156", "code": "BDA-1156", "note": "", "po": 0.0, "ship": {"2026-09": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "PRESS": [0.0, 0.0], "열처리": [0.0, 0.0], "표면처리": [0.0, 0.0], "검사대기": [2478.0, 1785.0], "표면O": [36000.0, 33000.0], "표면X": [0.0, 0.0]}, {"name": "1156A", "code": "BDA-1156", "note": "개발중 품목 (확정출하 미발생)", "po": 0.0, "ship": {"2026-09": [0, 0, 0, 0, 0, 0, 0]}, "PRESS": [0.0, 0.0], "열처리": [0.0, 0.0], "표면처리": [0.0, 0.0], "검사대기": [520.0, 0.0], "표면O": [15000.0, 100.0], "표면X": [0.0, 0.0]}, {"name": "1113D", "code": "BDA-1113D", "note": "1113AA와 별도 제품 · 공정이동표 미운영", "po": 0, "ship": {"2026-09": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "PRESS": [0, 0], "열처리": [0, 0], "표면처리": [0, 0], "검사대기": [0, 0], "표면O": [0, 0], "표면X": [0, 0]}]};
+const KEY='skf_sbc_raceway_v2';
+let D=JSON.parse(JSON.stringify(ORIG));
+try{const sv=localStorage.getItem(KEY);if(sv){const j=JSON.parse(sv);if(j.rows&&j.months)D=j;}}catch(e){}
+const PR=[['PRESS','PRESS','c1'],['열처리','열처리','c1'],['표면처리','표면처리','c1'],
+ ['검사대기','검사대기','c2'],['표면O','포장(표면O)','c2'],['표면X','포장(표면X)','c2']];
+const f=n=>n?n.toLocaleString():'<span class="z">-</span>';
+const esc=n=>n.toLocaleString();
+const T=k=>D.rows.reduce((a,r)=>a+(typeof k=='function'?k(r):r[k]),0);
+const NV='#2e5e9e',BAD='#b3261e',GRY='#9aa4b2';
+const M=()=>D.months.find(m=>m.k==D.active)||D.months[0];
+const CHA=()=>M().cha;
+const MLBL=()=>{const p=D.active.split('-');return p.length>1?(+p[1])+'월':D.active;};
+const SH=r=>{const k=D.active;if(!r.ship[k])r.ship[k]=[];
+ const c=CHA().length;while(r.ship[k].length<c)r.ship[k].push(0);
+ if(r.ship[k].length>c)r.ship[k].length=c;return r.ship[k];};
+
+function calc(){if(!M())D.active=D.months[0].k;D.rows.forEach(r=>{
+ SH(r);
+ r.sumIn=PR.reduce((a,p)=>a+r[p[0]][0],0); r.sumOut=PR.reduce((a,p)=>a+r[p[0]][1],0);
+ r.setPack=Math.min(r['표면O'][0]+r['표면X'][0], r['표면O'][1]+r['표면X'][1]);
+ r.setInsp=Math.min(r['검사대기'][0]+r['표면O'][0]+r['표면X'][0],
+                    r['검사대기'][1]+r['표면O'][1]+r['표면X'][1]);
+ r.shipSum=SH(r).reduce((a,b)=>a+b,0);
+ r.gapP=r.setPack-r.shipSum; r.gapI=r.setInsp-r.shipSum;});}
+
+function ov(i,k,g){const o=ORIG.rows[i];if(!o)return null;
+ if(k=='ship')return (o.ship[D.active]||[])[g];
+ if(k=='po')return o.po; return o[k][g];}
+function dirty(i,k,g){const o=ov(i,k,g);if(o===undefined||o===null)return true;
+ const c=k=='ship'?SH(D.rows[i])[g]:(k=='po'?D.rows[i].po:D.rows[i][k][g]);return c!=o;}
+function ed(i,k,g,v,cls){
+ return `<td class="n ${cls||''} ${dirty(i,k,g)?'dirty':''}">
+ <input class="ed" data-i="${i}" data-k="${k}" data-g="${g}" value="${v?v.toLocaleString():''}"></td>`;}
+
+function renderMon(){
+ document.getElementById('mon').innerHTML=D.months.map(m=>
+  `<option value="${m.k}" ${m.k==D.active?'selected':''}>${m.k}</option>`).join('');
+ document.getElementById('chabar').innerHTML=
+  '<b style="color:var(--navy);margin-right:4px">'+D.active+' 차수</b>'+
+  CHA().map((c,j)=>`<span class="chip"><input class="cn" data-j="${j}" data-f="n" value="${c.n}">
+   <input class="cd" data-j="${j}" data-f="d" value="${c.d||''}" placeholder="MM/DD">
+   <button onclick="delCha(${j})" title="차수 삭제">×</button></span>`).join('')+
+  '<button class="b" onclick="addCha()">+ 차수 추가</button>';}
+
+function renderT1(){
+ const cha=CHA();
+ let h='<thead><tr><th rowspan=2>No</th><th rowspan=2>Raceway</th><th rowspan=2>품번(BDA)</th>';
+ PR.forEach(p=>h+=`<th colspan=2>${p[1]}</th>`);
+ h+='<th colspan=2>재고합계</th><th colspan=2>출하가능 SET</th>';
+ h+=`<th colspan=${cha.length+1}>${MLBL()} 확정출하 (SET)</th><th colspan=2>과부족</th>
+  <th rowspan=2>소재<br>발주량</th><th rowspan=2>진척률</th><th rowspan=2>비고</th></tr><tr>`;
+ PR.forEach(()=>h+='<th>IN</th><th>OUT</th>');
+ h+='<th>IN</th><th>OUT</th><th>포장완료<br>기준</th><th>검사대기<br>포함</th>';
+ cha.forEach(c=>h+=`<th>${c.n}<br><small>${c.d||''}</small></th>`);
+ h+='<th>합계</th><th>포장기준</th><th>검사포함</th></tr></thead><tbody>';
+ D.rows.forEach((r,i)=>{
+  h+=`<tr><td>${i+1}</td><td class="name">${r.name}</td><td>${r.code}</td>`;
+  PR.forEach(p=>{h+=ed(i,p[0],0,r[p[0]][0],p[2])+ed(i,p[0],1,r[p[0]][1],p[2]);});
+  h+=`<td class="n">${f(r.sumIn)}</td><td class="n">${f(r.sumOut)}</td>`;
+  h+=`<td class="n c3">${f(r.setPack)}</td><td class="n c3">${f(r.setInsp)}</td>`;
+  SH(r).forEach((q,j)=>h+=ed(i,'ship',j,q,'c4'));
+  h+=`<td class="n c4"><b>${f(r.shipSum)}</b></td>`;
+  h+=`<td class="n ${r.gapP<0?'neg':'pos'}">${esc(r.gapP)}</td>`;
+  h+=`<td class="n ${r.gapI<0?'neg':'pos'}">${esc(r.gapI)}</td>`;
+  h+=ed(i,'po',0,r.po,'');
+  if(r.shipSum){const p=Math.min(100,Math.round(r.setInsp/r.shipSum*100));
+   h+=`<td><div class="bar"><i class="${p<100?'low':''}" style="width:${p}%"></i></div>
+   <small class="n">${p}%</small></td>`;} else h+='<td class="z">-</td>';
+  h+=`<td class="note">${r.note}</td></tr>`;});
+ h+='</tbody><tfoot><tr><td colspan=3>합 계</td>';
+ PR.forEach(p=>h+=`<td class="n">${f(T(r=>r[p[0]][0]))}</td><td class="n">${f(T(r=>r[p[0]][1]))}</td>`);
+ h+=`<td class="n">${f(T('sumIn'))}</td><td class="n">${f(T('sumOut'))}</td>
+  <td class="n">${f(T('setPack'))}</td><td class="n">${f(T('setInsp'))}</td>`;
+ cha.forEach((c,j)=>h+=`<td class="n">${f(T(r=>SH(r)[j]))}</td>`);
+ h+=`<td class="n">${f(T('shipSum'))}</td>
+  <td class="n ${T('gapP')<0?'neg':'pos'}">${esc(T('gapP'))}</td>
+  <td class="n ${T('gapI')<0?'neg':'pos'}">${esc(T('gapI'))}</td>
+  <td class="n">${f(T('po'))}</td><td></td><td></td></tr></tfoot>`;
+ document.getElementById('t1').innerHTML=h;}
+
+function renderT2(){
+ let s='<thead><tr><th>Raceway</th><th>출하가능 SET<br>(검사대기 포함)</th>';
+ CHA().forEach(c=>s+=`<th>${c.n} 후 잔량<br><small>${c.d||''}</small></th>`);
+ s+='</tr></thead><tbody>';
+ D.rows.forEach(r=>{let cum=0;
+  s+=`<tr><td class="name">${r.name}</td><td class="n">${f(r.setInsp)}</td>`;
+  SH(r).forEach(q=>{cum+=q;const v=r.setInsp-cum;
+   s+=`<td class="n ${v<0?'neg':''}">${esc(v)}</td>`;});
+  s+='</tr>';});
+ document.getElementById('t2').innerHTML=s+'</tbody>';}
+
+function renderT3(){
+ document.getElementById('t3').innerHTML='<thead><tr><th>항목</th><th>내용</th><th>처리</th></tr></thead><tbody>'+[
+ ['1156A','개발중 품목 · 확정출하List 미등재','재고만 집계, 출하 대비 제외'],
+ ['1113AA / 1113D','별도 제품 (1113D는 공정이동표 미운영)','1113D 재고 0으로 표기'],
+ ['1165A / 1179C / 1159B','표면처리 공정 없음 (원본에 66,000 / 33,000 중복 기재)','표면처리 재고 삭제 처리'],
+ ['월 관리','출하 월별로 차수·수량을 따로 보관 (공정재고는 공통)','상단 [출하 월] 선택 · [+ 새 월 등록]'],
+ ['수정 이력','직접 수정한 셀은 노란색 표시','[저장(JSON)] 백업 · [원본 복원] 초기화'],
+ ['서버 동기화','Supabase kv_store 키 tj_sbc_status_v1 (전 기기 공유)','수정 시 자동 업로드 · [서버 새로고침]으로 최신본 수신']
+ ].map(r=>`<tr><td class="name">${r[0]}</td><td class="l">${r[1]}</td><td class="l">${r[2]}</td></tr>`).join('')+'</tbody>';}
+
+function renderDash(){
+ const ml=MLBL();
+ document.getElementById('kpis').innerHTML=[
+  [ml+' 확정출하 합계',T('shipSum'),'SET',0],
+  ['출하가능 SET (포장완료)',T('setPack'),'SET',0],
+  ['출하가능 SET (검사대기 포함)',T('setInsp'),'SET',0],
+  ['부족 수량',Math.max(0,T('shipSum')-T('setInsp')),'SET',T('shipSum')>T('setInsp')],
+  ['공정재고 총계 (IN+OUT)',T('sumIn')+T('sumOut'),'EA',0],
+  ['소재 발주량',T('po'),'EA',0]
+ ].map(k=>`<div class="kpi ${k[3]?'warn':''}"><div class="l">${k[0]}</div>
+  <div class="v n">${esc(k[1])}<span class="u">${k[2]}</span></div></div>`).join('');
+ document.getElementById('h2t').innerHTML=`차수별 확정출하 vs 누적 <small>${D.active} · SET</small>`;
+
+ const fill=T('shipSum')?T('setInsp')/T('shipSum'):0;
+ const risk=D.rows.filter(r=>r.shipSum>0&&r.gapI<0).sort((a,b)=>a.gapI-b.gapI);
+ document.getElementById('hl').innerHTML=T('shipSum')?
+  `${ml} 확정출하 <b style="color:var(--ink)">${esc(T('shipSum'))} SET</b> 대비 출하가능 재고(검사대기 포함)는
+   <b style="color:var(--ink)">${esc(T('setInsp'))} SET</b>으로 충족률 <b>${(fill*100).toFixed(1)}%</b>,
+   부족 <b>${esc(Math.max(0,T('shipSum')-T('setInsp')))} SET</b>입니다. 부족 품목은 ${risk.length}개`+
+   (risk.length?`이며 상위 ${Math.min(3,risk.length)}개는 ${risk.slice(0,3).map(r=>
+     `<b style="color:var(--ink)">${r.name}</b>(${esc(r.gapI)})`).join(', ')} 입니다.`:'입니다.')
+  :`<b style="color:var(--ink)">${D.active}</b> 확정출하 수량이 아직 입력되지 않았습니다.
+    [통합현황] 탭에서 차수를 등록하고 품목별 수량을 입력하세요.
+    현재 출하가능 재고(검사대기 포함)는 <b style="color:var(--ink)">${esc(T('setInsp'))} SET</b>입니다.`;
+
+ const st=PR.map(p=>({n:p[1],i:T(r=>r[p[0]][0]),o:T(r=>r[p[0]][1])}));
+ const mx=Math.max(...st.map(s=>s.i+s.o))||1;
+ let h='<svg viewBox="0 0 460 190" width="100%">';
+ st.forEach((s,k)=>{const y=6+k*30;
+  h+=`<text x="0" y="${y+13}" font-size="10.5" fill="#6b7684">${s.n}</text>
+   <rect x="86" y="${y+3}" width="${s.i/mx*300}" height="8" fill="${NV}" rx="2"/>
+   <rect x="86" y="${y+13}" width="${s.o/mx*300}" height="8" fill="#8fb0d9" rx="2"/>
+   <text x="400" y="${y+14}" font-size="10.5" text-anchor="end">${esc(s.i+s.o)}</text>`;});
+ h+=`<rect x="86" y="182" width="8" height="6" fill="${NV}"/><text x="98" y="188" font-size="10" fill="#6b7684">INNER</text>
+  <rect x="150" y="182" width="8" height="6" fill="#8fb0d9"/><text x="162" y="188" font-size="10" fill="#6b7684">OUTER</text></svg>`;
+ document.getElementById('c1').innerHTML=h;
+
+ const q=CHA().map((c,j)=>({n:c.n,d:c.d||'',v:T(r=>SH(r)[j])})).filter(x=>x.v>0);
+ const W=430,H=182;let g=`<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+ if(q.length){let cum=0;const cs=q.map(x=>cum+=x.v);
+  const m2=Math.max(...q.map(x=>x.v))||1,tot=Math.max(cum,T('setInsp'))||1,bw=W/q.length;
+  const avail=T('setInsp'),ya=H-30-(avail/tot)*112;
+  g+=`<line x1="0" y1="${ya}" x2="${W}" y2="${ya}" stroke="${BAD}" stroke-dasharray="4 3"/>
+   <line x1="2" y1="7" x2="22" y2="7" stroke="${BAD}" stroke-dasharray="4 3"/>
+   <text x="27" y="10.5" font-size="9.5" fill="${BAD}">출하가능 SET ${esc(avail)}</text>`;
+  q.forEach((x,k)=>{const bh=(x.v/m2)*92,bx=k*bw+bw*0.22,by=H-30-bh;
+   g+=`<rect x="${bx}" y="${by}" width="${bw*0.56}" height="${bh}" fill="${NV}" rx="2"/>
+    <text x="${bx+bw*0.28}" y="${by-4}" font-size="9.5" text-anchor="middle">${esc(x.v)}</text>
+    <text x="${bx+bw*0.28}" y="${H-16}" font-size="10.5" text-anchor="middle">${x.n}</text>
+    <text x="${bx+bw*0.28}" y="${H-5}" font-size="9" text-anchor="middle" fill="${GRY}">${x.d}</text>`;});
+  g+=`<polyline points="${q.map((x,k)=>`${k*bw+bw*0.5},${H-30-(cs[k]/tot)*112}`).join(' ')}"
+   fill="none" stroke="${BAD}" stroke-width="1.6"/>`;
+  q.forEach((x,k)=>g+=`<circle cx="${k*bw+bw*0.5}" cy="${H-30-(cs[k]/tot)*112}" r="2.6" fill="${BAD}"/>`);}
+ else g+=`<text x="${W/2}" y="90" font-size="12" text-anchor="middle" fill="${GRY}">확정출하 수량 미입력</text>`;
+ document.getElementById('c2').innerHTML=g+'</svg>';
+
+ const rr=D.rows.filter(r=>r.shipSum>0||r.setInsp>0).slice().sort((a,b)=>a.gapI-b.gapI);
+ const mg=Math.max(...rr.map(r=>Math.abs(r.gapI)),1);
+ document.getElementById('c3').innerHTML=rr.map(r=>
+  `<div class="rk"><span class="nm">${r.name}</span>
+   <span class="tr"><i class="${r.gapI<0?'r':''}" style="width:${Math.abs(r.gapI)/mg*100}%"></i></span>
+   <span class="vv" style="color:${r.gapI<0?BAD:'#1b6b3a'}">${esc(r.gapI)}</span></div>`).join('');
+
+ const c4=D.rows.filter(r=>r.shipSum>0)
+  .map(r=>({n:r.name,p:Math.min(100,Math.round(r.setInsp/r.shipSum*100))}))
+  .sort((a,b)=>a.p-b.p).map(r=>
+  `<div class="rk"><span class="nm">${r.n}</span>
+   <span class="tr"><i class="${r.p<100?'r':''}" style="width:${r.p}%"></i></span>
+   <span class="vv">${r.p}%</span></div>`).join('');
+ document.getElementById('c4').innerHTML=c4||'<div class="rk" style="color:var(--sub)">확정출하 수량 미입력</div>';}
+
+function nDirty(){let c=0;D.rows.forEach((r,i)=>{
+ PR.forEach(p=>{if(dirty(i,p[0],0))c++;if(dirty(i,p[0],1))c++;});
+ SH(r).forEach((q,j)=>{if(q&&dirty(i,'ship',j))c++;});
+ if(dirty(i,'po',0))c++;});return c;}
+
+function renderAll(){calc();
+ const bx=document.getElementById('bx1');const sx=bx.scrollLeft,sy=bx.scrollTop;
+ renderMon();renderT1();renderT2();renderT3();renderDash();
+ bx.scrollLeft=sx;bx.scrollTop=sy;
+ const n=nDirty();
+ document.getElementById('stat').innerHTML=n?`<b style="color:#b3261e">수정 ${n}건</b> · 자동저장됨`:'원본 상태';
+ document.getElementById('meta').textContent=
+  '재고 기준일 : '+D.base+'  |  출처 : 전공정이동표(2026.9월) + 확정출하List(2026 Rev0)  |  수량단위 : EA (출하 SET 기준)';
+ try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}
+ if(booted&&typeof schedulePush=='function')schedulePush();}
+
+/* --- 편집 --- */
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.id=='mon'){D.active=t.value;renderAll();return;}
+ if(t.dataset.f){const j=+t.dataset.j;
+  if(t.dataset.f=='n')CHA()[j].n=t.value.trim()||((j+1)+'차'); else CHA()[j].d=t.value.trim();
+  renderAll();return;}
+ if(!t.classList.contains('ed'))return;
+ let v=parseFloat(String(t.value).replace(/[^0-9.\-]/g,''));if(isNaN(v))v=0;
+ const i=+t.dataset.i,k=t.dataset.k,g=+t.dataset.g;
+ if(k=='ship')SH(D.rows[i])[g]=v; else if(k=='po')D.rows[i].po=v; else D.rows[i][k][g]=v;
+ renderAll();});
+document.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.tagName=='INPUT')e.target.blur();});
+
+/* --- 차수 --- */
+function addCha(){const c=CHA();c.push({n:(c.length+1)+'차',d:''});
+ D.rows.forEach(r=>SH(r).push(0));renderAll();}
+function delCha(j){if(CHA().length<=1){alert('차수는 최소 1개 필요합니다.');return;}
+ if(!confirm(CHA()[j].n+' 차수를 삭제합니다.'))return;
+ CHA().splice(j,1);D.rows.forEach(r=>{const s=r.ship[D.active];if(s)s.splice(j,1);});renderAll();}
+
+/* --- 월 --- */
+function nextKey(){const l=D.months[D.months.length-1].k.split('-');
+ let y=+l[0],m=+l[1]+1;if(m>12){m=1;y++;}return y+'-'+String(m).padStart(2,'0');}
+function newMonth(copy){const k=prompt('새 출하 월을 입력하세요 (YYYY-MM)',nextKey());
+ if(!k)return;if(!/^\d{4}-\d{2}$/.test(k)){alert('YYYY-MM 형식으로 입력하세요.');return;}
+ if(D.months.some(m=>m.k==k)){alert(k+' 은 이미 등록되어 있습니다.');D.active=k;renderAll();return;}
+ const src=M();
+ D.months.push({k:k,cha:copy?JSON.parse(JSON.stringify(src.cha)):[{n:'1차',d:''}]});
+ D.months.sort((a,b)=>a.k<b.k?-1:1);
+ D.rows.forEach(r=>{r.ship[k]=copy?(r.ship[src.k]||[]).slice():[0];});
+ D.active=k;renderAll();
+ alert(k+' 등록 완료.\n[통합현황] 탭에서 차수와 수량을 입력하세요.');}
+function addMonth(){newMonth(false);}
+function copyMonth(){newMonth(true);}
+function delMonth(){if(D.months.length<=1){alert('최소 1개 월은 남겨야 합니다.');return;}
+ if(!confirm(D.active+' 출하 데이터를 삭제합니다.'))return;
+ const k=D.active;D.months=D.months.filter(m=>m.k!=k);
+ D.rows.forEach(r=>{delete r.ship[k];});D.active=D.months[0].k;renderAll();}
+
+/* --- 파일 --- */
+function saveFile(){const b=new Blob([JSON.stringify(D,null,1)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(b);
+ a.download='SKF_SBC_통합현황_'+D.active+'.json';a.click();}
+document.getElementById('fi').addEventListener('change',e=>{
+ const fl=e.target.files[0];if(!fl)return;const rd=new FileReader();
+ rd.onload=()=>{try{const j=JSON.parse(rd.result);if(!j.rows||!j.months)throw 0;
+  D=j;if(!M())D.active=D.months[0].k;renderAll();}catch(x){alert('불러오기 실패: 형식이 올바르지 않습니다.');}
+  e.target.value='';};rd.readAsText(fl);});
+function reset(){if(!confirm('모든 수정 내용과 추가한 월을 지우고 원본으로 되돌립니다.'))return;
+ D=JSON.parse(JSON.stringify(ORIG));try{localStorage.removeItem(KEY);}catch(e){}renderAll();}
+function csv(){const rs=[['출하월','Raceway','품번']];
+ PR.forEach(p=>rs[0].push(p[1]+'_IN',p[1]+'_OUT'));
+ rs[0].push('재고합계_IN','재고합계_OUT','출하가능SET_포장','출하가능SET_검사포함');
+ CHA().forEach(c=>rs[0].push('출하_'+c.n+(c.d?'('+c.d+')':'')));
+ rs[0].push('출하합계','과부족_포장','과부족_검사포함','소재발주량','비고');
+ D.rows.forEach(r=>{const o=[D.active,r.name,r.code];
+  PR.forEach(p=>o.push(r[p[0]][0],r[p[0]][1]));
+  o.push(r.sumIn,r.sumOut,r.setPack,r.setInsp,...SH(r),r.shipSum,r.gapP,r.gapI,r.po,r.note);
+  rs.push(o);});
+ const b=new Blob(['\ufeff'+rs.map(r=>r.join(',')).join('\n')],{type:'text/csv'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(b);
+ a.download='SKF_SBC_통합현황_'+D.active+'.csv';a.click();}
+
+
+/* --- Supabase 동기화 (kv_store / tj_sbc_status_v1) --- */
+const SB='https://ebthltdmxpzlkfwvdloz.supabase.co';
+const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVidGhsdGRteHB6bGtmd3ZkbG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNTcxNTQsImV4cCI6MjA5MDczMzE1NH0.bXqNpOtDMCFjuZROrIDm_3o0kHmNESs7EHOgGnFCxAM';
+const SKEY='tj_sbc_status_v1';
+const HDR={apikey:SK,Authorization:'Bearer '+SK,'Content-Type':'application/json'};
+let booted=false,pushT=null;
+function setSync(t,c){const e=document.getElementById('sync');
+ if(e)e.innerHTML=`<span style="color:${c};font-size:11.5px">● ${t}</span>`;}
+async function pullNow(force){setSync('동기화 중…','#6b7684');
+ try{const r=await fetch(`${SB}/rest/v1/kv_store?key=eq.${SKEY}&select=value,updated_at`,{headers:HDR});
+  if(!r.ok)throw new Error(r.status);
+  const j=await r.json();
+  if(j.length&&j[0].value&&j[0].value.rows){
+   const sv=j[0].updated_at||'', lo=D.ua||'';
+   if(force||sv>lo){D=j[0].value;D.ua=sv;booted=false;renderAll();booted=true;
+    setSync('서버 최신본 적용 · '+new Date(sv).toLocaleString('ko-KR'),'#1b6b3a');}
+   else{setSync('서버와 동일','#1b6b3a');if(lo>sv)pushNow();}
+  }else{setSync('서버에 자료 없음 · 현재 내용 업로드','#e0a800');pushNow();}
+ }catch(e){setSync('오프라인 · 로컬에만 저장됨','#b3261e');}}
+async function pushNow(){const t=new Date().toISOString();
+ try{const r=await fetch(`${SB}/rest/v1/kv_store`,{method:'POST',
+   headers:Object.assign({},HDR,{Prefer:'resolution=merge-duplicates'}),
+   body:JSON.stringify({key:SKEY,value:Object.assign({},D,{ua:t}),updated_at:t})});
+  if(!r.ok)throw new Error(r.status);
+  D.ua=t;try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}
+  setSync('서버 저장 완료 · '+new Date(t).toLocaleTimeString('ko-KR'),'#1b6b3a');
+ }catch(e){setSync('서버 저장 실패 · 로컬 보관','#b3261e');}}
+function schedulePush(){clearTimeout(pushT);pushT=setTimeout(pushNow,900);}
+
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+ document.querySelectorAll('.tab').forEach(a=>a.classList.remove('on'));
+ document.querySelectorAll('.panel').forEach(a=>a.classList.remove('on'));
+ t.classList.add('on');document.getElementById(t.dataset.p).classList.add('on');});
+renderAll();booted=true;pullNow();
+</script></body></html>
